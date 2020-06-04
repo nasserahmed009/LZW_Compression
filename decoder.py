@@ -1,3 +1,4 @@
+import numpy as np
 import math
 import timeit
 
@@ -15,32 +16,33 @@ for val in encodedArray:
 binaryString = binaryString[8:len(binaryString)-numOfZerosAtEnd]
 
 # forming the initial dictionary
-dictionary = []
-for char in range(0,256):
-    dictionary.append(chr(char))
+dictionary = np.load('dictionary.npy')
+dictionary = dictionary.tolist()
+# for char in range(0,256):
+#     dictionary.append(chr(char))
+
+
 
 print("⌛️ Decoding the file, please wait ..")        
 output = ""
 idx = 0
 
-minValueWithLength = 128
-variableLengthSize = 8
+
 
 while(idx <len(binaryString)):
 
-    if(len(dictionary) > minValueWithLength*2):
-        minValueWithLength = minValueWithLength*2
-        variableLengthSize = math.ceil( math.log(len(dictionary),2) )
-
+    variableLengthSize = math.ceil( math.log(len(dictionary),2) )
+    
     currentChar = int( binaryString[idx : idx+variableLengthSize], 2)
-    dictionary[-1] = dictionary[-1].replace("undefined", dictionary[currentChar][0])
+    if(idx != 0):
+        dictionary[-1] += dictionary[currentChar][0]
     
     output += dictionary[currentChar] 
     idx += variableLengthSize
-
     if(idx < len(binaryString)):
-        dictionary.append(dictionary[currentChar] + 'undefined')
+        dictionary.append(dictionary[currentChar])
 
+    
 
 encodedTextFile = open("decoded.txt", "w")
 encodedTextFile.write(output)

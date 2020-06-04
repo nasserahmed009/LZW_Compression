@@ -2,14 +2,12 @@ import numpy as np
 import timeit
 import math
 
-
-
 # reading the text file
 validFileName = False
 while not validFileName:
     try:
         fileName = input("⚙️ Enter file name to compress : ")
-        origialFile = open(fileName, "rb")
+        origialFile = open(fileName, "r")
         originalText = origialFile.read()
         origialFile.close()
         validFileName = True 
@@ -20,9 +18,12 @@ while not validFileName:
 startTime = timeit.default_timer()
 
 dictionary = {}
-# forming the initial dictionary
-for char in range(0,256):
-    dictionary[chr(char)] = len(dictionary)
+
+for char in originalText:
+    if(char not in dictionary):
+        dictionary[char] = len(dictionary)
+
+np.save( 'dictionary.npy',  np.array( list(dictionary.keys()) ))
 
 
 # constructing the binary string
@@ -32,11 +33,11 @@ binaryString = ""
 idx=0
 while(idx < len(originalText)):
     
-    currentChar = chr(originalText[idx])
+    currentChar = originalText[idx]
     
     idx+=1
     if(idx < len(originalText)):
-        nextChar = chr(originalText[idx])
+        nextChar = originalText[idx]
     else:
         nextChar = ''
 
@@ -44,7 +45,7 @@ while(idx < len(originalText)):
         currentChar = currentChar+nextChar
         idx+=1
         if(idx < len(originalText)):
-            nextChar = chr(originalText[idx])
+            nextChar = originalText[idx]
         else:
             nextChar = ''
             break
