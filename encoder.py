@@ -1,6 +1,7 @@
 import numpy as np
 import timeit
 import math
+from pathlib import Path
 
 # reading the text file
 validFileName = False
@@ -17,19 +18,19 @@ while not validFileName:
 
 startTime = timeit.default_timer()
 
+# constructing the initial dictionary
 dictionary = {}
-
 for char in originalText:
     if(char not in dictionary):
         dictionary[char] = len(dictionary)
 
+# output the initial dictionary to be used by the decoder
 np.save( 'dictionary.npy',  np.array( list(dictionary.keys()) ))
-
 
 # constructing the binary string
 print("⌛️ Constructing the binary string, please wait ..")
-
 binaryString = ""
+variableLength = math.ceil( math.log( len(dictionary) ,2) )
 idx=0
 while(idx < len(originalText)):
     
@@ -50,15 +51,19 @@ while(idx < len(originalText)):
             nextChar = ''
             break
             
-    dictionarySize = math.ceil( math.log( len(dictionary) ,2) )
-    binaryChar = format(dictionary[currentChar], '0'+str(dictionarySize)+'b')
+    binaryChar = format(dictionary[currentChar], '0'+str(variableLength)+'b')
     binaryString += binaryChar
 
     if((currentChar+nextChar) not in dictionary):
         dictionary[currentChar+nextChar] = len(dictionary)
 
-print("⌛️ Constructing the compressed file, please wait ..")
+        # check if len(dictionary) is a power of 2
+        if((len(dictionary) & (len(dictionary)-1) == 0) and len(dictionary) != 0):
+            variableLength += 1
+    
 
+
+print("⌛️ Constructing the compressed file, please wait ..")
 zerosAtEnd = 8 - ( 8 if len(binaryString) % 8 == 0 else len(binaryString)%8)
 binaryString += zerosAtEnd * '0'
 
@@ -75,4 +80,9 @@ encodedBinaryFile.write(barray)
 encodedBinaryFile.close()
 
 endTime = timeit.default_timer()
-print('⏱ Time taken : ', endTime - startTime, ' seconds')  
+print('⏱  Compression time : ', endTime - startTime, ' seconds')  
+
+# getting the compression ratio
+originalFileSize = Path(fileName).stat().st_size
+compressedFileSize = len(barray)
+print('📈 Compression ratio :', originalFileSize/compressedFileSize)
